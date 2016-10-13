@@ -14,27 +14,28 @@ ARGV.each do |target|
     anemone.on_every_page do |crawled_page|
       $stderr.puts crawled_page.url
 
-      crawled_page.body.scan(/[\w\d]+[\w\d.-]@[\w\d.-]+\.\w{2,6}/).each do |address|
+      unless crawled_page.body.nil?
+        crawled_page.body.scan(/[\w\d]+[\w\d.-]@[\w\d.-]+\.\w{2,6}/).each do |address|
 
-        if Address.first(:email => address).nil?
-          page = Page.first_or_create(
-            { :url => crawled_page.url.to_s },
-            {
+          if Address.first(:email => address).nil?
+           page = Page.first_or_create(
+             { :url => crawled_page.url.to_s },
+             {
+                :site => site,
+                :created_at => Time.now
+              }
+            )
+  
+           Address.create(
+              :email => address,
               :site => site,
+              :page => page,
               :created_at => Time.now
-            }
-          )
+            )
 
-          Address.create(
-            :email => address,
-            :site => site,
-            :page => page,
-            :created_at => Time.now
-          )
-
-          puts address
+            puts address
+         end
         end
-
       end
     end
   end
